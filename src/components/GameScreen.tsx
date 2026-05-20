@@ -195,12 +195,13 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
   return (
     <div
       style={{
-        height: '100vh',
+        height: '100dvh',
         display: 'flex',
         flexDirection: 'column',
         background: '#000000',
         overflow: 'hidden',
         color: 'white',
+        paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
       {/* HEADER (44px) */}
@@ -281,7 +282,7 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              objectPosition: 'center 20%',
+              objectPosition: 'center 40%',
             }}
           />
         </AnimatePresence>
@@ -350,6 +351,7 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
         style={{
           height: 160,
           flexShrink: 0,
+          flexGrow: 0,
           background: '#111111',
           borderTop: '1px solid #333333',
           padding: '12px 16px',
