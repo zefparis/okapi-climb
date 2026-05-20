@@ -53,6 +53,14 @@ html, body, #root {
 .okapi-climbing { animation: climbing 1.5s ease-in-out infinite; }
 .okapi-crashed  { animation: crashed 0.1s ease-in-out 5; }
 
+/* Subtle bob for the canvas-drawn okapi sprite while running */
+@keyframes okapiRun {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+.okapi-run { animation: okapiRun 0.3s ease-in-out infinite; }
+
 /* Hide scrollbar but keep scroll */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

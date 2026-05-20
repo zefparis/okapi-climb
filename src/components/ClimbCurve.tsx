@@ -2,6 +2,10 @@ import { useEffect, useRef } from 'react'
 
 type GameState = 'waiting' | 'playing' | 'crashed' | 'cashedout'
 
+// Load the okapi sprite once at module scope so it is reused across renders.
+const okapiImg = new Image()
+okapiImg.src = '/images/okapi-sprite.png'
+
 interface Props {
   state: GameState
   startTime: number | null
@@ -22,6 +26,8 @@ export default function ClimbCurve({ state, startTime }: Props) {
   const rafRef = useRef<number>(0)
   const fadeAlphaRef = useRef<number>(1)
   const startRef = useRef<number | null>(null)
+  const crashStartRef = useRef<number | null>(null)
+  const crashAnchorRef = useRef<Point | null>(null)
 
   // Resize canvas to its container in device pixels
   useEffect(() => {
@@ -55,6 +61,8 @@ export default function ClimbCurve({ state, startTime }: Props) {
       pointsRef.current = []
       fadeAlphaRef.current = 1
       startRef.current = null
+      crashStartRef.current = null
+      crashAnchorRef.current = null
       ctx.clearRect(0, 0, W(), H())
       return
     }
@@ -62,9 +70,16 @@ export default function ClimbCurve({ state, startTime }: Props) {
       pointsRef.current = []
       startRef.current = startTime ?? performance.now()
       fadeAlphaRef.current = 1
+      crashStartRef.current = null
+      crashAnchorRef.current = null
     }
 
     let shakeT0 = state === 'crashed' ? performance.now() : 0
+    if (state === 'crashed' && crashStartRef.current == null) {
+      crashStartRef.current = performance.now()
+      const pts = pointsRef.current
+      crashAnchorRef.current = pts.length ? { ...pts[pts.length - 1] } : null
+    }
 
     const draw = () => {
       const w = W()
@@ -146,6 +161,41 @@ export default function ClimbCurve({ state, startTime }: Props) {
         }
 
         ctx.restore()
+
+        // --- Okapi sprite at the tip of the curve ---
+        if (okapiImg.complete && okapiImg.naturalWidth > 0) {
+          const SIZE = 80
+          const tip = pts[pts.length - 1]
+          const prev = pts[Math.max(0, pts.length - 6)] // a few points back for stable angle
+
+          if (state === 'playing' || state === 'cashedout') {
+            const angle = Math.atan2(tip.y - prev.y, tip.x - prev.x)
+            ctx.save()
+            ctx.translate(tip.x + dx, tip.y + dy)
+            ctx.rotate(angle)
+            // Flip horizontally so the okapi faces the direction of climb
+            ctx.scale(-1, 1)
+            // Center horizontally; offset upward so feet (bottom of sprite) touch the curve
+            ctx.drawImage(okapiImg, -SIZE / 2, -SIZE, SIZE, SIZE)
+            ctx.restore()
+          } else if (state === 'crashed') {
+            const anchor = crashAnchorRef.current ?? tip
+            const t0 = crashStartRef.current ?? performance.now()
+            const t = Math.min(1, (performance.now() - t0) / 1000)
+            const fallDist = h - anchor.y + SIZE
+            const yOff = t * fallDist
+            const rot = (t * Math.PI) / 2 // up to 90deg
+            const alpha = 1 - t
+
+            ctx.save()
+            ctx.globalAlpha = alpha
+            ctx.translate(anchor.x + dx, anchor.y + dy + yOff)
+            ctx.rotate(rot)
+            ctx.scale(-1, 1)
+            ctx.drawImage(okapiImg, -SIZE / 2, -SIZE, SIZE, SIZE)
+            ctx.restore()
+          }
+        }
       }
 
       // Fade out after crash so it smoothly disappears before next round
@@ -163,7 +213,9 @@ export default function ClimbCurve({ state, startTime }: Props) {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute left-0 right-0 mx-auto pointer-events-none"
+      className={`absolute left-0 right-0 mx-auto pointer-events-none${
+        state === 'playing' ? ' okapi-run' : ''
+      }`}
       style={{
         top: '20%',
         width: '100%',
