@@ -37,6 +37,12 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
 
   const [betId, setBetId] = useState<string | null>(null)
   const hasBetRef = useRef(false)
+  // Source of truth for cashout requests: avoids the React state race where
+  // `betId` is still null in the closure of an early CASH OUT click.
+  const betIdRef = useRef<string | null>(null)
+  // Set to true on first WS message so we don't kick off the local fallback
+  // state machine when a real server is available.
+  const gotServerMsg = useRef(false)
 
   // Load history initially
   useEffect(() => {
@@ -46,6 +52,7 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
   // Subscribe to socket events
   useEffect(() => {
     const off = gameSocket.on((msg: GameMessage) => {
+      gotServerMsg.current = true
       switch (msg.type) {
         case 'WAITING':
           setState('waiting')
@@ -54,16 +61,26 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
           setCashoutMultiplier(null)
           setMultiplier(1)
           setBetId(null)
+          betIdRef.current = null
           hasBetRef.current = false
           break
         case 'PLAYING':
           setState('playing')
           setStartTime(msg.startTime)
           break
+        case 'TICK':
+          setMultiplier(msg.multiplier)
+          break
         case 'CRASHED':
           setState((prev) => (prev === 'cashedout' ? 'cashedout' : 'crashed'))
           setCrashPoint(msg.crashPoint)
           setHistory((h) => [msg.crashPoint, ...h].slice(0, 20))
+          betIdRef.current = null
+          break
+        case 'CASHOUT_CONFIRM':
+          // Show other players cashing out (placeholder hook for future
+          // players-list / flash notification integration)
+          console.log('Player cashed out:', msg)
           break
         case 'HISTORY':
           setHistory(msg.history)
@@ -126,6 +143,7 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
 
     // Only run fallback if no server message received within 2s
     const fallback = window.setTimeout(() => {
+      if (gotServerMsg.current) return
       startWaiting()
     }, 2000)
 
@@ -159,29 +177,40 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
     try {
       const res = await api.placeBet(userId, amount)
       setBetId(res.bet_id)
-      setBalance(res.balance)
+      betIdRef.current = res.bet_id
+      // Don't overwrite the local balance when the server has no Supabase
+      // configured and therefore returns balance: null.
+      if (res.balance !== null && res.balance !== undefined) {
+        setBalance(res.balance)
+      }
     } catch {
       // Offline / no server: fake bet id
-      setBetId(`local-${Date.now()}`)
+      const localId = `local-${Date.now()}`
+      setBetId(localId)
+      betIdRef.current = localId
     }
   }
 
   const handleCashout = async () => {
     if (!hasBetRef.current) return
+    const currentBetId = betIdRef.current
+    if (!currentBetId) return // place-bet response not back yet
     const localM = multiplier
     setState('cashedout')
     setCashoutMultiplier(localM)
     try {
-      if (betId && !betId.startsWith('local-')) {
-        const res = await api.cashout(userId, betId)
+      if (!currentBetId.startsWith('local-')) {
+        const res = await api.cashout(userId, currentBetId)
         setCashoutMultiplier(res.multiplier)
-        setBalance(res.balance)
-      } else {
-        // local credit
-        // we don't know original bet amount here; skip
+        if (res.balance !== null && res.balance !== undefined) {
+          setBalance(res.balance)
+        }
       }
+      // local fallback: original bet amount unknown, skip credit
     } catch {
       /* ignore */
+    } finally {
+      betIdRef.current = null
     }
   }
 
@@ -361,7 +390,7 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
         <BetPanel
           state={state}
           multiplier={multiplier}
-          hasBet={hasBetRef.current}
+          hasBet={Boolean(betId)}
           onPlaceBet={handlePlaceBet}
           onCashout={handleCashout}
         />

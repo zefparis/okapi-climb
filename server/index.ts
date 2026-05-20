@@ -104,7 +104,9 @@ app.post<{ Body: BetBody }>('/api/game/bet', async (req, reply) => {
     cashed_out: false,
   })
 
-  return reply.send({ bet_id, balance: balance ?? 0 })
+  // balance === null when Supabase is not configured: do not overwrite the
+  // client-side displayed balance with a fake 0.
+  return reply.send({ bet_id, balance })
 })
 
 interface CashoutBody {
@@ -180,7 +182,7 @@ app.post<{ Body: CashoutBody }>('/api/game/cashout', async (req, reply) => {
   return reply.send({
     win_amount,
     multiplier,
-    balance: balance ?? 0,
+    balance,
   })
 })
 
