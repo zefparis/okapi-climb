@@ -193,33 +193,28 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
       : ''
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-black text-white">
-      {/* Fullscreen background with crossfade */}
-      <AnimatePresence>
-        <motion.div
-          key={bgKey}
-          className="bg-fixed-fullscreen"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4, ease: 'easeInOut' }}
-        >
-          <img
-            src={BG_MAP[bgKey]}
-            alt="okapi"
-            className={okapiAnimClass}
-            draggable={false}
-          />
-        </motion.div>
-      </AnimatePresence>
-
-      {/* Dark gradient overlay for readability */}
-      <div className="fixed inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80 pointer-events-none" style={{ zIndex: 1 }} />
-
-      {/* Compact single-line header (44px) */}
-      <header
-        className="relative z-20 flex items-center justify-between px-3 w-full"
-        style={{ height: 44 }}
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#000000',
+        overflow: 'hidden',
+        color: 'white',
+      }}
+    >
+      {/* HEADER (44px) */}
+      <div
+        style={{
+          height: 44,
+          flexShrink: 0,
+          zIndex: 30,
+          background: 'rgba(0,0,0,0.9)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 12px',
+        }}
       >
         <div
           className="text-white/80 font-semibold tracking-widest whitespace-nowrap"
@@ -239,26 +234,78 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
         >
           SOLDE: {balance.toLocaleString()} CDF
         </div>
-      </header>
+      </div>
 
-      {/* Crash history bar (24px) */}
+      {/* HISTORY BAR (28px) */}
       <div
-        className="relative z-20 w-full"
-        style={{ height: 24 }}
+        style={{
+          height: 28,
+          flexShrink: 0,
+          zIndex: 30,
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 8px',
+          gap: 6,
+          overflowX: 'auto',
+        }}
+        className="no-scrollbar"
       >
         <CrashHistory history={history} />
       </div>
 
-      {/* Game area: fills remaining space above the bet panel */}
-      <main
-        className="relative w-full"
-        style={{ height: 'calc(100vh - 44px - 24px - 160px)' }}
+      {/* GAME ZONE — image + curve + multiplier */}
+      <div
+        style={{
+          flex: 1,
+          position: 'relative',
+          overflow: 'hidden',
+          minHeight: 0,
+        }}
       >
-        {/* Climbing curve canvas fills the game area */}
+        {/* Background image fills ONLY this zone, with crossfade */}
+        <AnimatePresence>
+          <motion.img
+            key={bgKey}
+            src={BG_MAP[bgKey]}
+            alt="okapi"
+            draggable={false}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            className={okapiAnimClass}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center 20%',
+            }}
+          />
+        </AnimatePresence>
+
+        {/* Soft darkening overlay for readability inside the game zone */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(to bottom, rgba(0,0,0,0.45), rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.55))',
+            pointerEvents: 'none',
+            zIndex: 10,
+          }}
+        />
+
+        {/* Climbing curve canvas fills this zone */}
         <ClimbCurve state={state} startTime={startTime} />
 
         {/* Players list (left) — desktop only */}
-        <div className="absolute left-4 top-4 z-10 hidden md:block">
+        <div
+          className="hidden md:block"
+          style={{ position: 'absolute', left: 16, top: 16, zIndex: 25 }}
+        >
           <PlayersList
             state={state}
             multiplier={multiplier}
@@ -266,11 +313,24 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
           />
         </div>
 
-        {/* Centered multiplier display, always above bet panel */}
-        <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-          <div className="text-center">
+        {/* Multiplier display centered in this zone */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+            zIndex: 25,
+          }}
+        >
+          <div style={{ textAlign: 'center' }}>
             {state === 'waiting' && (
-              <div className="mb-2 text-white/70 font-bebas tracking-widest" style={{ fontSize: 20 }}>
+              <div
+                className="text-white/80 font-bebas tracking-widest"
+                style={{ fontSize: 20, marginBottom: 8 }}
+              >
                 PROCHAIN TOUR DANS {countdown}s
               </div>
             )}
@@ -283,17 +343,17 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
             />
           </div>
         </div>
-      </main>
+      </div>
 
-      {/* Bottom bet panel: fixed, 160px, blurred dark background */}
+      {/* BET PANEL — solid dark background, separate from game zone */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-20 px-2 py-2"
         style={{
           height: 160,
-          background: 'rgba(0,0,0,0.85)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
+          flexShrink: 0,
+          background: '#111111',
+          borderTop: '1px solid #333333',
+          padding: '12px 16px',
+          zIndex: 30,
         }}
       >
         <BetPanel

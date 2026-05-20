@@ -34,12 +34,26 @@ export default function BetPanel({
 
   return (
     <div
-      className="grid grid-cols-2 gap-2 w-full h-full"
-      style={{ maxWidth: 720, margin: '0 auto' }}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 12,
+        width: '100%',
+        height: '100%',
+      }}
     >
-      {/* Left column: bet input + quick chips + MISER */}
-      <div className="flex flex-col gap-1.5 h-full">
-        <div className="flex items-center gap-1">
+      {/* Left: MISE */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: '#222',
+            borderRadius: 8,
+            padding: '0 10px',
+            height: 36,
+          }}
+        >
           <input
             type="number"
             min={MIN_BET}
@@ -47,63 +61,96 @@ export default function BetPanel({
             value={amount}
             disabled={!canBet}
             onChange={(e) => setAmount(clamp(Number(e.target.value)))}
-            className="flex-1 bg-white/10 border border-white/15 rounded-md px-2 text-white font-semibold focus:outline-none focus:border-gold disabled:opacity-50"
-            style={{ height: 36, fontSize: 14 }}
+            style={{
+              flex: 1,
+              background: 'transparent',
+              color: 'white',
+              fontSize: 18,
+              border: 'none',
+              outline: 'none',
+              width: '100%',
+              minWidth: 0,
+              fontWeight: 600,
+              opacity: canBet ? 1 : 0.5,
+            }}
           />
-          <span className="text-white/60" style={{ fontSize: 11 }}>CDF</span>
+          <span style={{ color: '#888', fontSize: 12 }}>CDF</span>
         </div>
-        <div className="grid grid-cols-4 gap-1">
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: 4,
+          }}
+        >
           {QUICK.map((q) => (
             <button
               key={q}
               disabled={!canBet}
               onClick={() => setAmount(q)}
-              className="bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10 rounded-md text-white leading-none"
-              style={{ fontSize: 11, height: 26 }}
+              style={{
+                background: '#333',
+                color: '#FFD700',
+                fontSize: 11,
+                fontWeight: 600,
+                borderRadius: 6,
+                padding: '4px 0',
+                border: 'none',
+                cursor: canBet ? 'pointer' : 'not-allowed',
+                opacity: canBet ? 1 : 0.5,
+              }}
             >
               {quickLabel(q)}
             </button>
           ))}
         </div>
+
         <button
           disabled={!canBet}
           onClick={() => onPlaceBet(clamp(amount))}
-          className="w-full rounded-lg text-black disabled:opacity-40 disabled:cursor-not-allowed shadow-lg hover:brightness-110 transition"
           style={{
-            height: 40,
             background: 'linear-gradient(135deg, #FFD700, #F59E0B)',
             color: '#000000',
             fontWeight: 900,
-            fontSize: 14,
+            fontSize: 16,
+            borderRadius: 8,
+            border: 'none',
+            flex: 1,
+            minHeight: 40,
             letterSpacing: '0.08em',
+            cursor: canBet ? 'pointer' : 'not-allowed',
+            opacity: canBet ? 1 : 0.45,
           }}
         >
           MISER
         </button>
       </div>
 
-      {/* Right column: single large CASH OUT button */}
+      {/* Right: CASH OUT */}
       <button
         disabled={!canCashout}
         onClick={onCashout}
-        className={`w-full h-full rounded-lg text-white shadow-lg transition flex flex-col items-center justify-center leading-none ${
-          canCashout ? 'animate-pulseStrong' : 'cursor-not-allowed'
-        }`}
         style={{
-          background: canCashout ? '#00A86B' : '#4b5563',
-          opacity: canCashout ? 1 : 0.55,
+          background: canCashout
+            ? 'linear-gradient(135deg, #00A86B, #059669)'
+            : '#1a1a1a',
+          color: canCashout ? 'white' : '#444',
+          borderRadius: 8,
+          border: 'none',
+          fontSize: 14,
+          fontWeight: 900,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: canCashout ? 'pointer' : 'default',
+          letterSpacing: '0.08em',
         }}
+        className={canCashout ? 'animate-pulseStrong' : undefined}
       >
-        <span
-          className="font-bebas tracking-widest"
-          style={{ fontSize: 18 }}
-        >
-          CASH OUT
-        </span>
-        <span
-          className="font-bebas mt-1"
-          style={{ fontSize: 36, letterSpacing: '0.04em' }}
-        >
+        <span>CASH OUT</span>
+        <span style={{ fontSize: 24, marginTop: 4, letterSpacing: '0.04em' }}>
           ×{multiplier.toFixed(2)}
         </span>
       </button>
