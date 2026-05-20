@@ -213,13 +213,12 @@ export default function ClimbCurve({ state, startTime }: Props) {
   return (
     <canvas
       ref={canvasRef}
-      className={`absolute left-0 right-0 mx-auto pointer-events-none${
+      className={`absolute inset-0 pointer-events-none${
         state === 'playing' ? ' okapi-run' : ''
       }`}
       style={{
-        top: '20%',
         width: '100%',
-        height: '60%',
+        height: '100%',
         zIndex: 5,
       }}
     />

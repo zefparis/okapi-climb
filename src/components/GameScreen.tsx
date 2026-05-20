@@ -219,70 +219,93 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
       {/* Dark gradient overlay for readability */}
       <div className="fixed inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80 pointer-events-none" style={{ zIndex: 1 }} />
 
-      {/* Climbing curve canvas (above background, below UI) */}
-      <ClimbCurve state={state} startTime={startTime} />
-
-      {/* Top bar */}
-      <div className="relative z-10 flex items-center justify-between px-4 sm:px-6 py-3">
-        <div className="text-sm text-white/80 font-semibold tracking-widest">
+      {/* Compact single-line header (44px) */}
+      <header
+        className="relative z-20 flex items-center justify-between px-3 w-full"
+        style={{ height: 44 }}
+      >
+        <div
+          className="text-white/80 font-semibold tracking-widest whitespace-nowrap"
+          style={{ fontSize: 11 }}
+        >
           CONGO <span className="text-gold">GAMING</span>
         </div>
-        <div className="font-bebas text-3xl neon-gold tracking-widest">
+        <div
+          className="font-bebas neon-gold tracking-widest whitespace-nowrap"
+          style={{ fontSize: 18, lineHeight: 1 }}
+        >
           OKAPI CLIMB
         </div>
-        <div className="text-right">
-          <div className="text-[10px] uppercase text-white/60 tracking-widest">
-            Solde
-          </div>
-          <div className="text-gold font-bebas text-xl tracking-wider">
-            {balance.toLocaleString()} CDF
-          </div>
+        <div
+          className="text-gold font-semibold tracking-wider whitespace-nowrap"
+          style={{ fontSize: 12 }}
+        >
+          SOLDE: {balance.toLocaleString()} CDF
         </div>
-      </div>
+      </header>
 
-      {/* Crash history */}
-      <div className="relative z-10 px-4">
+      {/* Crash history bar (24px) */}
+      <div
+        className="relative z-20 w-full"
+        style={{ height: 24 }}
+      >
         <CrashHistory history={history} />
       </div>
 
-      {/* Players list (left) — desktop only */}
-      <div className="absolute left-4 top-32 z-10 hidden md:block">
-        <PlayersList
-          state={state}
-          multiplier={multiplier}
-          crashPoint={crashPoint}
-        />
-      </div>
+      {/* Game area: fills remaining space above the bet panel */}
+      <main
+        className="relative w-full"
+        style={{ height: 'calc(100vh - 44px - 24px - 160px)' }}
+      >
+        {/* Climbing curve canvas fills the game area */}
+        <ClimbCurve state={state} startTime={startTime} />
 
-      {/* Center multiplier */}
-      <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-        <div className="text-center">
-          {state === 'waiting' && (
-            <div className="mb-3 text-white/70 font-bebas text-2xl tracking-widest">
-              PROCHAIN TOUR DANS {countdown}s
-            </div>
-          )}
-          <MultiplierDisplay
-            state={state}
-            startTime={startTime}
-            crashPoint={crashPoint}
-            cashoutMultiplier={cashoutMultiplier}
-            onTick={onTick}
-          />
-        </div>
-      </div>
-
-      {/* Bottom bet panel: fixed, full width on mobile, max 500px centered on desktop */}
-      <div className="fixed bottom-0 left-0 right-0 z-10 p-3 sm:p-4">
-        <div className="w-full md:max-w-[500px] mx-auto">
-          <BetPanel
+        {/* Players list (left) — desktop only */}
+        <div className="absolute left-4 top-4 z-10 hidden md:block">
+          <PlayersList
             state={state}
             multiplier={multiplier}
-            hasBet={hasBetRef.current}
-            onPlaceBet={handlePlaceBet}
-            onCashout={handleCashout}
+            crashPoint={crashPoint}
           />
         </div>
+
+        {/* Centered multiplier display, always above bet panel */}
+        <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+          <div className="text-center">
+            {state === 'waiting' && (
+              <div className="mb-2 text-white/70 font-bebas tracking-widest" style={{ fontSize: 20 }}>
+                PROCHAIN TOUR DANS {countdown}s
+              </div>
+            )}
+            <MultiplierDisplay
+              state={state}
+              startTime={startTime}
+              crashPoint={crashPoint}
+              cashoutMultiplier={cashoutMultiplier}
+              onTick={onTick}
+            />
+          </div>
+        </div>
+      </main>
+
+      {/* Bottom bet panel: fixed, 160px, blurred dark background */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-20 px-2 py-2"
+        style={{
+          height: 160,
+          background: 'rgba(0,0,0,0.85)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <BetPanel
+          state={state}
+          multiplier={multiplier}
+          hasBet={hasBetRef.current}
+          onPlaceBet={handlePlaceBet}
+          onCashout={handleCashout}
+        />
       </div>
     </div>
   )

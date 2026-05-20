@@ -29,14 +29,17 @@ export default function BetPanel({
   const clamp = (n: number) =>
     Math.max(MIN_BET, Math.min(MAX_BET, Math.floor(n) || 0))
 
+  const quickLabel = (n: number) =>
+    n >= 1000 ? `${n / 1000}k` : `${n}`
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-3xl mx-auto">
-      {/* Section A: Place bet */}
-      <div className="bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-4">
-        <div className="text-xs uppercase tracking-widest text-white/60 mb-2">
-          Mise
-        </div>
-        <div className="flex items-center gap-2 mb-3">
+    <div
+      className="grid grid-cols-2 gap-2 w-full h-full"
+      style={{ maxWidth: 720, margin: '0 auto' }}
+    >
+      {/* Left column: bet input + quick chips + MISER */}
+      <div className="flex flex-col gap-1.5 h-full">
+        <div className="flex items-center gap-1">
           <input
             type="number"
             min={MIN_BET}
@@ -44,48 +47,65 @@ export default function BetPanel({
             value={amount}
             disabled={!canBet}
             onChange={(e) => setAmount(clamp(Number(e.target.value)))}
-            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-lg font-semibold focus:outline-none focus:border-gold disabled:opacity-50"
+            className="flex-1 bg-white/10 border border-white/15 rounded-md px-2 text-white font-semibold focus:outline-none focus:border-gold disabled:opacity-50"
+            style={{ height: 36, fontSize: 14 }}
           />
-          <span className="text-white/60 text-sm">CDF</span>
+          <span className="text-white/60" style={{ fontSize: 11 }}>CDF</span>
         </div>
-        <div className="grid grid-cols-4 gap-1.5 mb-3">
+        <div className="grid grid-cols-4 gap-1">
           {QUICK.map((q) => (
             <button
               key={q}
               disabled={!canBet}
               onClick={() => setAmount(q)}
-              className="bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10 rounded-md py-1.5 text-xs text-white"
+              className="bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10 rounded-md text-white leading-none"
+              style={{ fontSize: 11, height: 26 }}
             >
-              {q.toLocaleString()}
+              {quickLabel(q)}
             </button>
           ))}
         </div>
         <button
           disabled={!canBet}
           onClick={() => onPlaceBet(clamp(amount))}
-          className="w-full py-3 rounded-lg font-bebas tracking-widest text-xl bg-gradient-to-b from-yellow-300 to-yellow-600 text-black disabled:opacity-40 disabled:cursor-not-allowed shadow-lg hover:brightness-110 transition"
+          className="w-full rounded-lg text-black disabled:opacity-40 disabled:cursor-not-allowed shadow-lg hover:brightness-110 transition"
+          style={{
+            height: 40,
+            background: 'linear-gradient(180deg, #FFD700 0%, #F59E0B 100%)',
+            fontWeight: 900,
+            fontSize: 14,
+            letterSpacing: '0.08em',
+          }}
         >
           MISER
         </button>
       </div>
 
-      {/* Section B: Cashout */}
-      <div className="bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-4 flex flex-col">
-        <div className="text-xs uppercase tracking-widest text-white/60 mb-2">
-          Retrait
-        </div>
-        <button
-          disabled={!canCashout}
-          onClick={onCashout}
-          className={`flex-1 min-h-[120px] w-full rounded-lg font-bebas tracking-widest text-3xl text-white shadow-lg transition ${
-            canCashout
-              ? 'bg-green-600 hover:bg-green-500 animate-pulseStrong'
-              : 'bg-green-900/40 cursor-not-allowed opacity-50'
-          }`}
+      {/* Right column: single large CASH OUT button */}
+      <button
+        disabled={!canCashout}
+        onClick={onCashout}
+        className={`w-full h-full rounded-lg text-white shadow-lg transition flex flex-col items-center justify-center leading-none ${
+          canCashout ? 'animate-pulseStrong' : 'cursor-not-allowed'
+        }`}
+        style={{
+          background: canCashout ? '#00A86B' : '#4b5563',
+          opacity: canCashout ? 1 : 0.55,
+        }}
+      >
+        <span
+          className="font-bebas tracking-widest"
+          style={{ fontSize: 18 }}
         >
-          CASH OUT ×{multiplier.toFixed(2)}
-        </button>
-      </div>
+          CASH OUT
+        </span>
+        <span
+          className="font-bebas mt-1"
+          style={{ fontSize: 36, letterSpacing: '0.04em' }}
+        >
+          ×{multiplier.toFixed(2)}
+        </span>
+      </button>
     </div>
   )
 }

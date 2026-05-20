@@ -88,11 +88,11 @@ export default function MultiplierDisplay({
     }
   }, [state, crashPoint, cashoutMultiplier])
 
-  // Font size progression
-  let fontSize = '4rem'
-  if (displayM >= 10) fontSize = '7rem'
-  else if (displayM >= 5) fontSize = '6rem'
-  else if (displayM >= 2) fontSize = '5rem'
+  // Responsive font size progression (mobile-first; scales up on larger screens)
+  let fontSize = 'clamp(3.5rem, 14vw, 5rem)'
+  if (displayM >= 10) fontSize = 'clamp(5rem, 20vw, 7rem)'
+  else if (displayM >= 5) fontSize = 'clamp(4.5rem, 18vw, 6.5rem)'
+  else if (displayM >= 2) fontSize = 'clamp(4rem, 16vw, 6rem)'
 
   // Extra glow when >= 10x
   const extraGlow =

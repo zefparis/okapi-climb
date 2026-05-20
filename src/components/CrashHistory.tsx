@@ -3,26 +3,28 @@ interface Props {
 }
 
 export default function CrashHistory({ history }: Props) {
+  // Render nothing visible when there is no history yet
+  if (history.length === 0) {
+    return <div className="flex h-full" aria-hidden="true" />
+  }
   return (
-    <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 px-2">
-      {history.slice(0, 10).map((m, i) => {
+    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar px-2 h-full">
+      {history.slice(0, 12).map((m, i) => {
         const good = m >= 2
         return (
           <div
             key={i}
-            className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+            className={`px-2 py-0.5 rounded-full font-semibold whitespace-nowrap leading-none ${
               good
                 ? 'bg-green-600/80 text-white'
                 : 'bg-red-600/80 text-white'
             }`}
+            style={{ fontSize: 10 }}
           >
             ×{m.toFixed(2)}
           </div>
         )
       })}
-      {history.length === 0 && (
-        <div className="text-xs text-white/50 px-2 py-1">No history yet</div>
-      )}
     </div>
   )
 }
