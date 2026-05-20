@@ -143,11 +143,8 @@ export default function GameScreen({ userId, balance, setBalance }: Props) {
   const bgKey: BgKey = useMemo(() => {
     if (state === 'cashedout') return 'win'
     if (state === 'crashed') return 'crash'
-    if (state === 'playing') {
-      if (multiplier >= 6) return 'slip'
-      if (multiplier >= 3) return 'slip'
-      return 'climb'
-    }
+    if (state === 'playing' && multiplier >= 5) return 'slip'
+    // waiting or playing && multiplier < 5
     return 'climb'
   }, [state, multiplier])
 

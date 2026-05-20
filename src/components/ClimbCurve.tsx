@@ -63,7 +63,22 @@ export default function ClimbCurve({ state, startTime }: Props) {
       startRef.current = null
       crashStartRef.current = null
       crashAnchorRef.current = null
-      ctx.clearRect(0, 0, W(), H())
+      // Draw a thin flat baseline near the bottom so the player sees where
+      // the curve will start growing from.
+      const w = W()
+      const h = H()
+      ctx.clearRect(0, 0, w, h)
+      ctx.save()
+      ctx.globalAlpha = 0.3
+      ctx.strokeStyle = '#9ca3af' // gray-400
+      ctx.lineWidth = 2
+      ctx.lineCap = 'round'
+      ctx.beginPath()
+      const baselineY = h - 20
+      ctx.moveTo(20, baselineY)
+      ctx.lineTo(w - 20, baselineY)
+      ctx.stroke()
+      ctx.restore()
       return
     }
     if (state === 'playing') {
@@ -140,10 +155,10 @@ export default function ClimbCurve({ state, startTime }: Props) {
         ctx.beginPath()
         ctx.moveTo(pts[0].x, pts[0].y)
         for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y)
-        ctx.lineWidth = 3
+        ctx.lineWidth = 4
         ctx.strokeStyle = stroke
-        ctx.shadowBlur = 15
-        ctx.shadowColor = glow
+        ctx.shadowBlur = 25
+        ctx.shadowColor = isCrashed ? '#ef4444' : '#FFD700'
         ctx.lineJoin = 'round'
         ctx.lineCap = 'round'
         ctx.stroke()
@@ -211,16 +226,26 @@ export default function ClimbCurve({ state, startTime }: Props) {
   }, [state, startTime])
 
   return (
-    <canvas
-      ref={canvasRef}
-      className={`absolute inset-0 pointer-events-none${
-        state === 'playing' ? ' okapi-run' : ''
-      }`}
+    <div
       style={{
-        width: '100%',
-        height: '100%',
-        zIndex: 5,
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: 'none',
+        zIndex: 20,
       }}
-    />
+    >
+      <canvas
+        ref={canvasRef}
+        className={state === 'playing' ? 'okapi-run' : undefined}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 20,
+        }}
+      />
+    </div>
   )
 }

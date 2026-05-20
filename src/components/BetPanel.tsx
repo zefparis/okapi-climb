@@ -71,7 +71,8 @@ export default function BetPanel({
           className="w-full rounded-lg text-black disabled:opacity-40 disabled:cursor-not-allowed shadow-lg hover:brightness-110 transition"
           style={{
             height: 40,
-            background: 'linear-gradient(180deg, #FFD700 0%, #F59E0B 100%)',
+            background: 'linear-gradient(135deg, #FFD700, #F59E0B)',
+            color: '#000000',
             fontWeight: 900,
             fontSize: 14,
             letterSpacing: '0.08em',
