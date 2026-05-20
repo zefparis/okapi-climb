@@ -28,6 +28,10 @@ create table if not exists public.balances (
   amount_cdf numeric not null default 0
 );
 
+-- Drop any pre-existing version (return type / signature may differ across
+-- environments, which makes `create or replace` fail with 42P13).
+drop function if exists public.adjust_balance(uuid, numeric);
+
 create or replace function public.adjust_balance(
   p_user_id uuid, p_amount numeric
 )
