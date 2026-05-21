@@ -107,8 +107,9 @@ export default function ClimbCurve({ state, startTime }: Props) {
         const m = multiplierAt(elapsed)
 
         // Map elapsed time -> X. Curve sweeps over ~20s of game time
+        // Right-to-left: starts at bottom-right, climbs toward top-left
         const SWEEP_SEC = 20
-        const x = Math.min(w, (elapsed / SWEEP_SEC) * w)
+        const x = w - Math.min(w, (elapsed / SWEEP_SEC) * w)
         // Map multiplier -> Y (higher m = higher Y on screen = lower y px)
         // Use log-ish compression so high multipliers still fit
         const Y_PAD = 20
@@ -184,12 +185,14 @@ export default function ClimbCurve({ state, startTime }: Props) {
           const prev = pts[Math.max(0, pts.length - 6)] // a few points back for stable angle
 
           if (state === 'playing' || state === 'cashedout') {
-            const angle = Math.atan2(tip.y - prev.y, tip.x - prev.x)
+            // Curve goes right-to-left, so the okapi naturally faces left
+            // (matches the sprite's native orientation, no flip needed).
+            // The sprite's native direction is (-1, 0), so we add PI to the
+            // motion angle so the sprite aligns with the climb direction.
+            const angle = Math.atan2(tip.y - prev.y, tip.x - prev.x) + Math.PI
             ctx.save()
             ctx.translate(tip.x + dx, tip.y + dy)
             ctx.rotate(angle)
-            // Flip horizontally so the okapi faces the direction of climb
-            ctx.scale(-1, 1)
             // Center horizontally; offset upward so feet (bottom of sprite) touch the curve
             ctx.drawImage(okapiImg, -SIZE / 2, -SIZE, SIZE, SIZE)
             ctx.restore()
@@ -206,7 +209,6 @@ export default function ClimbCurve({ state, startTime }: Props) {
             ctx.globalAlpha = alpha
             ctx.translate(anchor.x + dx, anchor.y + dy + yOff)
             ctx.rotate(rot)
-            ctx.scale(-1, 1)
             ctx.drawImage(okapiImg, -SIZE / 2, -SIZE, SIZE, SIZE)
             ctx.restore()
           }
